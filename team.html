@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Power Arena Team</title>
+  <style>
+    :root {
+      --bg: oklch(12% 0.055 265);
+      --surface: oklch(18% 0.05 265);
+      --fg: oklch(98% 0.01 250);
+      --muted: oklch(75% 0.025 260);
+      --border: oklch(35% 0.065 265);
+      --accent: oklch(72% 0.19 86);
+      --team: oklch(65% 0.22 29);
+      --good: oklch(72% 0.17 150);
+      --bad: oklch(62% 0.2 27);
+      --font-display: "Avenir Next", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      --font-mono: "SFMono-Regular", ui-monospace, Menlo, monospace;
+      --ease: cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    body[data-team="B"] { --team: oklch(65% 0.18 235); }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 50% 0%, color-mix(in oklch, var(--team), transparent 50%), transparent 38%),
+        linear-gradient(135deg, oklch(9% 0.05 268), var(--bg));
+    }
+    button, input { font: inherit; }
+    button { border: 0; cursor: pointer; }
+    .phone {
+      min-height: 100vh;
+      width: min(560px, 100%);
+      margin: 0 auto;
+      padding: 18px;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 14px;
+    }
+    .top, .card {
+      border: 1px solid color-mix(in oklch, var(--border), white 4%);
+      border-radius: 24px;
+      background: color-mix(in oklch, var(--surface), transparent 7%);
+      box-shadow: 0 20px 60px rgba(0,0,0,.22);
+    }
+    .top { padding: 14px; display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
+    h1 { margin: 0; font: 950 clamp(30px, 9vw, 52px)/.9 var(--font-display); letter-spacing: -.04em; }
+    .meta { color: var(--muted); font-size: 14px; margin-top: 6px; }
+    .match { color: var(--accent); font-size: 13px; font-weight: 950; margin-top: 8px; line-height: 1.35; }
+    .score { font: 950 clamp(48px, 16vw, 86px)/.86 var(--font-mono); color: var(--team); letter-spacing: -.08em; }
+    .join { padding: 14px; display: grid; gap: 10px; }
+    .join-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+    .register {
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+      border-radius: 20px;
+      background: color-mix(in oklch, var(--team), transparent 86%);
+      border: 1px solid color-mix(in oklch, var(--team), white 10%);
+    }
+    .register.done {
+      background: rgba(255,255,255,.045);
+      border-color: color-mix(in oklch, var(--border), white 4%);
+    }
+    .register-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 850;
+    }
+    .register-title strong { color: var(--fg); }
+    .input {
+      min-height: 52px;
+      width: 100%;
+      border: 1px solid color-mix(in oklch, var(--border), white 6%);
+      border-radius: 16px;
+      padding: 0 14px;
+      background: rgba(255,255,255,.07);
+      color: var(--fg);
+      outline: none;
+      font-weight: 850;
+    }
+    .input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in oklch, var(--accent), transparent 76%); }
+    .team-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .btn {
+      min-height: 52px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.08);
+      color: var(--fg);
+      font-weight: 950;
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    .btn.primary, .btn.active { background: var(--team); color: oklch(12% 0.04 265); }
+    .problem { padding: 20px; display: grid; align-content: center; text-align: center; }
+    .kicker { color: var(--muted); font-weight: 900; letter-spacing: .12em; text-transform: uppercase; font-size: 12px; }
+    .question { margin: 16px 0; font: 950 clamp(48px, 16vw, 92px)/1 var(--font-display); letter-spacing: -.04em; text-wrap: balance; }
+    .hint { color: var(--muted); line-height: 1.5; }
+    .answer-panel { padding: 14px; display: grid; gap: 10px; }
+    .answer-input { min-height: 64px; font: 900 24px/1 var(--font-mono); text-align: center; }
+    .feedback { min-height: 44px; color: var(--muted); text-align: center; font-weight: 800; }
+    .feedback.good { color: var(--good); }
+    .feedback.bad { color: var(--bad); }
+    .sync {
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.055);
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+      line-height: 1.4;
+    }
+    .sync strong { color: var(--fg); }
+    .submit { min-height: 64px; font-size: 20px; }
+    .format { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; color: var(--muted); font-size: 13px; }
+    .format span { padding: 6px 9px; border-radius: 999px; background: rgba(255,255,255,.06); }
+    @media (max-width: 420px) {
+      .phone { padding: 12px; }
+      .join-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="phone">
+    <header class="top">
+      <div>
+        <h1 id="teamName">ทีมแดง</h1>
+        <div class="meta"><span id="roomLabel">POWER-4821</span> · <span id="clock">03:00</span> · <span id="status">LOBBY</span></div>
+        <div class="match" id="matchInfo">รอจับคู่</div>
+      </div>
+      <div class="score" id="score">0</div>
+    </header>
+
+    <section class="card join">
+      <div class="sync" id="syncMode"><strong>โหมดห้องเรียน</strong> กำลังเชื่อมต่อกับเครื่องครู</div>
+      <div class="join-row">
+        <input class="input" id="roomInput" maxlength="12" aria-label="รหัสห้อง" />
+        <button class="btn" id="joinBtn">เข้าห้อง</button>
+      </div>
+      <div class="team-switch">
+        <button class="btn active" id="teamA">ทีมแดง</button>
+        <button class="btn" id="teamB">ทีมน้ำเงิน</button>
+      </div>
+      <div class="register" id="registerBox">
+        <div class="register-title">
+          <strong>ลงชื่อทีมก่อนแข่ง</strong>
+          <span id="registerState">ยังไม่บันทึก</span>
+        </div>
+        <div class="join-row">
+          <input class="input" id="teamNameInput" maxlength="28" autocomplete="organization" placeholder="เช่น มังกรสายฟ้า ม.2/1" />
+          <button class="btn primary" id="saveTeamName">บันทึกชื่อทีม</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card problem">
+      <div class="kicker" id="round">รอบ 01</div>
+      <div class="question" id="question">รอครูสร้างห้อง</div>
+      <div class="hint" id="hint">ใส่รหัสห้องจากจอครู แล้วเลือกทีมของคุณ</div>
+    </section>
+
+    <section class="card answer-panel">
+      <input class="input answer-input" id="answerInput" autocomplete="off" inputmode="text" placeholder="พิมพ์คำตอบ เช่น x^5y^2" />
+      <button class="btn primary submit" id="submit">ส่งคำตอบ</button>
+      <div class="feedback" id="feedback">พร้อมรับคำตอบเมื่อครูเริ่มแมตช์</div>
+      <div class="format"><span>2^8</span><span>2⁸</span><span>x^3y^2</span><span>1/2^4</span></div>
+    </section>
+  </main>
+
+  <script src="shared-game.js"></script>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let team = (new URLSearchParams(location.search).get("team") || "A").toUpperCase() === "B" ? "B" : "A";
+    let room = PowerArena.loadRoom(new URLSearchParams(location.search).get("room") || PowerArena.DEFAULT_ROOM);
+    let sync = PowerArena.createSync(room.code, (next) => { room = next; paint(); });
+
+    function publish(next) {
+      room = sync.publish(next);
+      paint();
+    }
+
+    function reconnect(code) {
+      sync.close();
+      room = PowerArena.loadRoom(code);
+      sync = PowerArena.createSync(room.code, (next) => { room = next; paint(); });
+      history.replaceState(null, "", `team.html?room=${encodeURIComponent(room.code)}&team=${team}`);
+      joinTeam();
+    }
+
+    async function joinTeam(name = "") {
+      try {
+        const next = await PowerArena.joinRoom(room, team, name);
+        publish(next);
+      } catch (_) {
+        const next = name ? PowerArena.registerTeam(room, team, name) : structuredClone(room);
+        next.teams[team].connected = true;
+        next.teams[team].feedback = name ? "บันทึกชื่อแล้ว แต่ยังเชื่อมเครื่องครูไม่ได้" : "เข้าห้องแล้ว แต่ยังเชื่อมเครื่องครูไม่ได้";
+        publish(next);
+      }
+    }
+
+    function setTeam(nextTeam) {
+      team = nextTeam;
+      document.body.dataset.team = team;
+      $("teamA").classList.toggle("active", team === "A");
+      $("teamB").classList.toggle("active", team === "B");
+      history.replaceState(null, "", `team.html?room=${encodeURIComponent(room.code)}&team=${team}`);
+      joinTeam();
+    }
+
+    function paint() {
+      document.body.dataset.team = team;
+      const me = room.teams[team];
+      $("roomInput").value = room.code;
+      $("roomLabel").textContent = room.code;
+      $("teamName").textContent = me.name;
+      if (document.activeElement !== $("teamNameInput")) {
+        $("teamNameInput").value = me.registered ? me.name : "";
+      }
+      $("teamNameInput").placeholder = team === "A" ? "เช่น มังกรสายฟ้า ม.2/1" : "เช่น อินทรีน้ำเงิน ม.2/2";
+      $("registerState").textContent = me.registered ? "บันทึกแล้ว" : "ยังไม่บันทึก";
+      $("registerBox").classList.toggle("done", Boolean(me.registered));
+      $("score").textContent = me.score;
+      $("clock").textContent = PowerArena.formatClock(room.remaining);
+      $("status").textContent = room.status.toUpperCase();
+      $("matchInfo").textContent = room.tournament.champion
+        ? `แชมป์: ${room.tournament.champion.name}`
+        : room.tournament.currentPair
+          ? `รอบ ${room.tournament.round} · คู่ ${room.tournament.matchNo}: ${room.tournament.currentPair.A.name} พบ ${room.tournament.currentPair.B.name}`
+          : "รอครูจับคู่ทัวร์นาเมนต์";
+      $("round").textContent = `รอบ ${String(room.round).padStart(2, "0")} · ${room.problem.level}`;
+      $("question").textContent = room.problem.question;
+      $("hint").textContent = room.problem.hint;
+      $("feedback").textContent = me.registered ? me.feedback : "บันทึกชื่อทีมก่อนเริ่มส่งคำตอบ";
+      $("feedback").className = "feedback";
+      if (/ถูกต้อง/.test(me.feedback)) $("feedback").classList.add("good");
+      if (/ไม่ถูก|อ่าน|อีกทีม/.test(me.feedback)) $("feedback").classList.add("bad");
+      $("submit").disabled = !me.registered || room.status !== "running" || room.lockedProblemId === room.problem.id;
+      $("teamA").classList.toggle("active", team === "A");
+      $("teamB").classList.toggle("active", team === "B");
+      $("syncMode").innerHTML = PowerArena.hasServerSync()
+        ? "<strong>โหมดห้องเรียน</strong> ส่งคำตอบเข้าเครื่องครูแบบ realtime"
+        : "<strong>โหมดทดลอง</strong> ใช้ได้เฉพาะแท็บในเครื่องเดียวกัน";
+    }
+
+    $("joinBtn").addEventListener("click", () => reconnect(PowerArena.normalizeRoomCode($("roomInput").value)));
+    $("teamA").addEventListener("click", () => setTeam("A"));
+    $("teamB").addEventListener("click", () => setTeam("B"));
+    $("saveTeamName").addEventListener("click", async () => {
+      const name = $("teamNameInput").value;
+      try {
+        const next = await PowerArena.renameTeam(room, team, name);
+        publish(next);
+      } catch (_) {
+        publish(PowerArena.registerTeam(room, team, name));
+      }
+    });
+    $("teamNameInput").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") $("saveTeamName").click();
+    });
+    $("submit").addEventListener("click", async () => {
+      $("submit").disabled = true;
+      try {
+        const result = await PowerArena.submitAnswer(room, team, $("answerInput").value);
+        publish(result.room);
+        if (result.ok) {
+          $("answerInput").value = "";
+          if (!PowerArena.hasServerSync()) {
+            setTimeout(() => publish(PowerArena.advanceProblem(PowerArena.loadRoom(room.code))), 700);
+          }
+        }
+      } catch (_) {
+        const next = structuredClone(room);
+        next.teams[team].feedback = "ส่งคำตอบไม่สำเร็จ ตรวจ Wi-Fi แล้วกดส่งอีกครั้ง";
+        publish(next);
+      } finally {
+        paint();
+      }
+    });
+    $("answerInput").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") $("submit").click();
+    });
+
+    joinTeam();
+    paint();
+  </script>
+</body>
+</html>

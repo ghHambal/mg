@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Power Arena - Room Code Battle</title>
+  <style>
+    :root {
+      --bg: oklch(12% 0.055 265);
+      --surface: oklch(18% 0.05 265);
+      --fg: oklch(98% 0.01 250);
+      --muted: oklch(76% 0.025 260);
+      --border: oklch(35% 0.065 265);
+      --accent: oklch(72% 0.19 86);
+      --red: oklch(65% 0.22 29);
+      --blue: oklch(65% 0.18 235);
+      --font-display: "Avenir Next", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      --font-mono: "SFMono-Regular", ui-monospace, Menlo, monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 20% 12%, color-mix(in oklch, var(--blue), transparent 58%), transparent 32%),
+        radial-gradient(circle at 86% 2%, color-mix(in oklch, var(--red), transparent 58%), transparent 29%),
+        linear-gradient(135deg, oklch(9% 0.05 268), var(--bg));
+    }
+    .shell { width: min(1180px, calc(100% - 30px)); min-height: 100vh; margin: 0 auto; padding: 36px 0; display: grid; align-content: center; gap: 24px; }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 22px;
+      align-items: end;
+      padding: clamp(22px, 4vw, 42px);
+      border-radius: 34px;
+      border: 1px solid color-mix(in oklch, var(--border), white 5%);
+      background: color-mix(in oklch, var(--surface), transparent 8%);
+      box-shadow: 0 28px 90px rgba(0,0,0,.3);
+    }
+    .mark { display: inline-grid; place-items: center; width: 62px; height: 62px; border-radius: 20px; margin-bottom: 18px; background: var(--accent); color: oklch(12% 0.04 265); font: 950 32px/1 var(--font-display); }
+    h1 { margin: 0; font: 950 clamp(48px, 9vw, 118px)/.84 var(--font-display); letter-spacing: -.06em; text-wrap: balance; }
+    .lead { margin: 18px 0 0; max-width: 720px; color: var(--muted); font-size: clamp(18px, 2vw, 25px); line-height: 1.45; }
+    .room {
+      padding: 22px;
+      border-radius: 28px;
+      background: rgba(255,255,255,.055);
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    .room span { color: var(--muted); font-weight: 900; letter-spacing: .12em; text-transform: uppercase; font-size: 13px; }
+    .room strong { display: block; margin-top: 10px; color: var(--accent); font: 950 clamp(36px, 6vw, 70px)/1 var(--font-mono); letter-spacing: .06em; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+    .card {
+      min-height: 210px;
+      display: grid;
+      align-content: space-between;
+      gap: 18px;
+      color: var(--fg);
+      text-decoration: none;
+      padding: 20px;
+      border-radius: 26px;
+      border: 1px solid color-mix(in oklch, var(--border), white 5%);
+      background: color-mix(in oklch, var(--surface), transparent 6%);
+      transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), border-color 160ms;
+    }
+    .card:hover { transform: translateY(-4px); border-color: var(--accent); }
+    .card strong { font: 950 25px/1.05 var(--font-display); letter-spacing: -.02em; }
+    .card p { margin: 0; color: var(--muted); line-height: 1.45; }
+    .badge { width: max-content; padding: 8px 10px; border-radius: 999px; font: 900 12px/1 var(--font-mono); letter-spacing: .08em; background: rgba(255,255,255,.08); color: var(--muted); }
+    .red .badge { background: color-mix(in oklch, var(--red), transparent 72%); color: white; }
+    .blue .badge { background: color-mix(in oklch, var(--blue), transparent 72%); color: white; }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      color: var(--muted);
+    }
+    .step { padding: 16px; border-radius: 20px; background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.07); }
+    .step strong { display: block; color: var(--fg); margin-bottom: 6px; }
+    .setup {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .setup-card {
+      padding: 18px;
+      border-radius: 22px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.075);
+      color: var(--muted);
+      line-height: 1.55;
+    }
+    .setup-card strong { display: block; color: var(--fg); margin-bottom: 8px; font-size: 18px; }
+    code {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(0,0,0,.28);
+      color: var(--accent);
+      font: 850 14px/1.4 var(--font-mono);
+    }
+    @media (max-width: 900px) {
+      .hero, .cards, .steps, .setup { grid-template-columns: 1fr; }
+      .cards { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 560px) {
+      .shell { padding: 16px 0; }
+      .cards, .steps { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <div class="mark">x²</div>
+        <h1>Power Arena Room Code</h1>
+        <p class="lead">เวอร์ชันพร้อมใช้ในห้องเรียน: ครูเปิด server, ใส่รายชื่อทีมทั้งหมด, ระบบจับคู่แข่งทีละคู่ และบันทึกอันดับคะแนนรวมแบบ realtime.</p>
+      </div>
+      <aside class="room">
+        <span>ห้องตัวอย่าง</span>
+        <strong>POWER-4821</strong>
+      </aside>
+    </section>
+
+    <section class="cards" aria-label="เลือกหน้าจอใช้งาน">
+      <a class="card" href="host.html?room=POWER-4821">
+        <span class="badge">TEACHER</span>
+        <strong>Teacher Host</strong>
+        <p>ครูสร้างห้อง ใส่รายชื่อทีม จับคู่ทัวร์นาเมนต์ เลือกเวลา และบันทึกผู้ชนะ</p>
+      </a>
+      <a class="card" href="scoreboard.html?room=POWER-4821">
+        <span class="badge">PROJECTOR</span>
+        <strong>Scoreboard</strong>
+        <p>จอใหญ่ขึ้นโปรเจกเตอร์ แสดงคู่ปัจจุบัน คะแนน เวลา โจทย์ และเฉลย</p>
+      </a>
+      <a class="card red" href="team.html?room=POWER-4821&team=A">
+        <span class="badge">TEAM A</span>
+        <strong>ทีมแดง</strong>
+        <p>หน้าสำหรับ iPad/มือถือทีมแดง ใช้พิมพ์คำตอบสุดท้าย</p>
+      </a>
+      <a class="card blue" href="team.html?room=POWER-4821&team=B">
+        <span class="badge">TEAM B</span>
+        <strong>ทีมน้ำเงิน</strong>
+        <p>หน้าสำหรับ iPad/มือถือทีมน้ำเงิน ใช้ส่งคำตอบแข่งกับทีมแดง</p>
+      </a>
+      <a class="card" href="power-arena-exponent-battle.html">
+        <span class="badge">BACKUP</span>
+        <strong>เครื่องเดียว</strong>
+        <p>แผนสำรองเมื่อ Wi‑Fi ไม่พร้อม ให้ตัวแทนทีมมาพิมพ์ที่เครื่องครู</p>
+      </a>
+    </section>
+
+    <section class="steps" aria-label="วิธีใช้งาน">
+      <div class="step"><strong>1. เปิด server ที่เครื่องครู</strong>ใช้คำสั่งด้านล่าง แล้วเลือก URL ที่เป็น IP วง Wi‑Fi เพื่อส่งให้เด็ก</div>
+      <div class="step"><strong>2. ครูเปิด Host + Scoreboard</strong>ใส่รายชื่อทีมทั้งหมดใน Host แล้วกดเริ่มจับคู่ ส่วน Scoreboard ลากไปขึ้นโปรเจกเตอร์หรือจอทีวี</div>
+      <div class="step"><strong>3. เด็กเข้าหน้าทีม</strong>คู่ที่กำลังแข่งใช้ลิงก์ทีมแดง/น้ำเงิน ทีมชนะถูกบันทึกเข้ารอบถัดไปและอันดับรวมทันที</div>
+    </section>
+
+    <section class="setup" aria-label="พร้อมใช้งานพรุ่งนี้">
+      <div class="setup-card">
+        <strong>ใช้งานหลายเครื่องจริง</strong>
+        ให้เครื่องครูและ iPad/มือถือเด็กอยู่ Wi‑Fi เดียวกัน จากนั้นเปิด server ในโฟลเดอร์นี้:
+        <code>node room-server.js</code>
+      </div>
+      <div class="setup-card">
+        <strong>แผนสำรองถ้า Wi‑Fi ไม่พร้อม</strong>
+        เปิด `power-arena-exponent-battle.html` บนเครื่องครูเครื่องเดียว แล้วให้ตัวแทนทีมมาพิมพ์คำตอบ หรือครูพิมพ์แทนตามคำตอบของแต่ละทีม คะแนนและโจทย์ยังทำงานได้ครบ.
+      </div>
+    </section>
+  </main>
+</body>
+</html>

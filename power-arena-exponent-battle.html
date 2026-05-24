@@ -1,0 +1,1356 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Power Arena - เกมแบทเทิลเลขยกกำลัง</title>
+  <style>
+    :root {
+      --bg: oklch(13% 0.05 265);
+      --surface: oklch(19% 0.045 265);
+      --surface-2: oklch(24% 0.055 265);
+      --fg: oklch(98% 0.01 250);
+      --muted: oklch(75% 0.025 260);
+      --border: oklch(34% 0.06 265);
+      --accent: oklch(72% 0.19 86);
+      --team-a: oklch(65% 0.22 29);
+      --team-b: oklch(65% 0.18 235);
+      --success: oklch(72% 0.17 150);
+      --warn: oklch(78% 0.17 78);
+      --danger: oklch(62% 0.2 27);
+      --font-display: "Avenir Next", "Söhne", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      --font-mono: "SFMono-Regular", "JetBrains Mono", ui-monospace, Menlo, monospace;
+      --ease: cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at 18% 15%, color-mix(in oklch, var(--team-b), transparent 64%), transparent 30%),
+        radial-gradient(circle at 84% 10%, color-mix(in oklch, var(--team-a), transparent 62%), transparent 28%),
+        linear-gradient(135deg, oklch(10% 0.05 268), var(--bg) 42%, oklch(11% 0.04 248));
+      color: var(--fg);
+      font-family: var(--font-body);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(color-mix(in oklch, var(--border), transparent 72%) 1px, transparent 1px),
+        linear-gradient(90deg, color-mix(in oklch, var(--border), transparent 76%) 1px, transparent 1px);
+      background-size: 72px 72px;
+      mask-image: linear-gradient(to bottom, black, transparent 78%);
+      opacity: 0.32;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      width: min(1440px, calc(100% - 32px));
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 24px 0 32px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 18px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: center;
+      padding: 14px 16px;
+      border: 1px solid color-mix(in oklch, var(--border), white 4%);
+      border-radius: 22px;
+      background: color-mix(in oklch, var(--surface), transparent 12%);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 22px 80px rgba(0, 0, 0, 0.26);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 46px;
+      height: 46px;
+      border-radius: 15px;
+      display: grid;
+      place-items: center;
+      background:
+        linear-gradient(145deg, color-mix(in oklch, var(--accent), white 8%), color-mix(in oklch, var(--team-a), black 8%));
+      color: oklch(12% 0.05 265);
+      font: 900 25px/1 var(--font-display);
+      box-shadow: 0 14px 36px color-mix(in oklch, var(--accent), transparent 70%);
+    }
+
+    h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(25px, 3vw, 44px);
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+    }
+
+    .subtitle {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: clamp(13px, 1.4vw, 16px);
+    }
+
+    .status-strip {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+      padding: 0 13px;
+      border-radius: 999px;
+      background: color-mix(in oklch, var(--surface-2), transparent 7%);
+      border: 1px solid color-mix(in oklch, var(--border), white 4%);
+      color: var(--muted);
+      white-space: nowrap;
+      font-size: 13px;
+    }
+
+    .chip strong {
+      color: var(--fg);
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .arena {
+      display: grid;
+      grid-template-columns: minmax(220px, 0.82fr) minmax(420px, 1.52fr) minmax(220px, 0.82fr);
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .team {
+      position: relative;
+      overflow: hidden;
+      min-height: 680px;
+      padding: 18px;
+      border: 1px solid color-mix(in oklch, var(--team-color), white 14%);
+      border-radius: 28px;
+      background:
+        linear-gradient(180deg, color-mix(in oklch, var(--team-color), transparent 84%), transparent 36%),
+        color-mix(in oklch, var(--surface), transparent 3%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 24px 70px rgba(0, 0, 0, 0.22);
+    }
+
+    .team-a { --team-color: var(--team-a); }
+    .team-b { --team-color: var(--team-b); }
+
+    .team-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .team-name {
+      width: 100%;
+      min-width: 0;
+      border: 1px solid color-mix(in oklch, var(--team-color), white 10%);
+      border-radius: 15px;
+      background: color-mix(in oklch, var(--bg), transparent 28%);
+      color: var(--fg);
+      padding: 11px 12px;
+      font-weight: 900;
+      font-size: 17px;
+      outline: none;
+    }
+
+    .team-name:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in oklch, var(--accent), transparent 75%);
+    }
+
+    .badge {
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 13px;
+      color: oklch(10% 0.04 265);
+      background: var(--team-color);
+      font: 950 18px/1 var(--font-display);
+    }
+
+    .score {
+      margin: 34px 0 18px;
+      font-family: var(--font-mono);
+      font-size: clamp(78px, 8vw, 126px);
+      line-height: 0.85;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.08em;
+    }
+
+    .team-label {
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .combo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid color-mix(in oklch, var(--border), white 4%);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .combo-meter {
+      flex: 1;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+    }
+
+    .combo-fill {
+      display: block;
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--team-color), var(--accent));
+      transition: width 260ms var(--ease);
+    }
+
+    .team-actions {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .team-answer {
+      display: grid;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .team-answer label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .answer-input {
+      width: 100%;
+      min-height: 54px;
+      border: 1px solid color-mix(in oklch, var(--team-color), white 8%);
+      border-radius: 16px;
+      background: color-mix(in oklch, var(--bg), transparent 20%);
+      color: var(--fg);
+      padding: 0 14px;
+      font-family: var(--font-mono);
+      font-size: 18px;
+      font-variant-numeric: tabular-nums;
+      outline: none;
+    }
+
+    .answer-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in oklch, var(--accent), transparent 74%);
+    }
+
+    .answer-input.correct {
+      border-color: var(--success);
+      background: color-mix(in oklch, var(--success), transparent 88%);
+    }
+
+    .answer-input.wrong {
+      border-color: var(--danger);
+      background: color-mix(in oklch, var(--danger), transparent 88%);
+    }
+
+    .answer-feedback {
+      min-height: 18px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .answer-btn {
+      min-height: 58px;
+      border-radius: 17px;
+      background: color-mix(in oklch, var(--team-color), black 2%);
+      color: oklch(10% 0.04 265);
+      font-weight: 950;
+      font-size: 17px;
+      box-shadow: 0 16px 32px color-mix(in oklch, var(--team-color), transparent 78%);
+      transition: transform 160ms var(--ease), filter 160ms var(--ease);
+    }
+
+    .answer-btn:hover { transform: translateY(-2px); filter: brightness(1.04); }
+    .answer-btn:active { transform: translateY(1px); }
+
+    .minor-btn {
+      min-height: 42px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.065);
+      border: 1px solid color-mix(in oklch, var(--border), white 4%);
+      color: var(--fg);
+      font-weight: 800;
+    }
+
+    .center-stage {
+      position: relative;
+      min-height: 680px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 14px;
+      padding: clamp(16px, 2vw, 24px);
+      border-radius: 32px;
+      border: 1px solid color-mix(in oklch, var(--border), white 8%);
+      background:
+        radial-gradient(circle at 50% 0%, color-mix(in oklch, var(--accent), transparent 74%), transparent 38%),
+        linear-gradient(180deg, color-mix(in oklch, var(--surface-2), transparent 8%), color-mix(in oklch, var(--surface), transparent 2%));
+      box-shadow: 0 28px 100px rgba(0, 0, 0, 0.38);
+      overflow: hidden;
+    }
+
+    .round-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .difficulty-track {
+      display: flex;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .level-dot {
+      flex: 1;
+      min-width: 18px;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .level-dot.active {
+      background: var(--accent);
+      box-shadow: 0 0 22px color-mix(in oklch, var(--accent), transparent 30%);
+    }
+
+    .timer-wrap {
+      width: clamp(96px, 13vw, 142px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: conic-gradient(var(--accent) var(--timer-deg), rgba(255,255,255,0.1) 0);
+      box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.045), 0 18px 50px rgba(0, 0, 0, 0.24);
+    }
+
+    .timer {
+      width: calc(100% - 16px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: color-mix(in oklch, var(--bg), black 5%);
+      font: 950 clamp(34px, 5vw, 56px)/1 var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .problem-card {
+      position: relative;
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      gap: 24px;
+      min-height: 390px;
+      padding: clamp(22px, 4vw, 56px);
+      border-radius: 30px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.09), rgba(255,255,255,0.025)),
+        color-mix(in oklch, var(--bg), white 4%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .problem-card::before {
+      content: "";
+      position: absolute;
+      width: 520px;
+      height: 520px;
+      border-radius: 50%;
+      border: 1px solid color-mix(in oklch, var(--accent), transparent 54%);
+      opacity: 0.42;
+      transform: rotate(18deg);
+    }
+
+    .problem-card > * { position: relative; z-index: 1; }
+
+    .round-kicker {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 8px 13px;
+      border-radius: 999px;
+      background: color-mix(in oklch, var(--accent), transparent 84%);
+      color: color-mix(in oklch, var(--accent), white 26%);
+      border: 1px solid color-mix(in oklch, var(--accent), transparent 50%);
+      font-weight: 900;
+      font-size: 14px;
+    }
+
+    .question {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(48px, 8.6vw, 118px);
+      line-height: 0.92;
+      letter-spacing: -0.055em;
+      text-wrap: balance;
+    }
+
+    .hint {
+      max-width: 680px;
+      color: var(--muted);
+      font-size: clamp(17px, 1.7vw, 24px);
+    }
+
+    .format-help {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      max-width: 760px;
+    }
+
+    .format-help span {
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.065);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+      font: 12px/1.2 var(--font-mono);
+    }
+
+    .answer-reveal {
+      display: none;
+      min-width: min(100%, 420px);
+      padding: 18px 22px;
+      border-radius: 22px;
+      background: color-mix(in oklch, var(--success), transparent 84%);
+      border: 1px solid color-mix(in oklch, var(--success), transparent 45%);
+      font-size: clamp(22px, 3vw, 40px);
+      font-weight: 950;
+      color: color-mix(in oklch, var(--success), white 22%);
+    }
+
+    .answer-reveal.show { display: block; animation: pop 360ms var(--ease); }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1.1fr repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .control-btn,
+    .select-control {
+      min-height: 52px;
+      border-radius: 16px;
+      border: 1px solid color-mix(in oklch, var(--border), white 8%);
+      color: var(--fg);
+      background: rgba(255, 255, 255, 0.07);
+      font-weight: 900;
+      outline: none;
+    }
+
+    .control-btn.primary {
+      background: var(--accent);
+      color: oklch(12% 0.04 265);
+      box-shadow: 0 16px 36px color-mix(in oklch, var(--accent), transparent 78%);
+    }
+
+    .control-btn:disabled,
+    .answer-btn:disabled,
+    .minute-btn:disabled {
+      cursor: default;
+      opacity: 0.48;
+      transform: none;
+      filter: grayscale(0.2);
+    }
+
+    .select-control {
+      width: 100%;
+      padding: 0 12px;
+      appearance: none;
+    }
+
+    .match-setup {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.045);
+      border: 1px solid rgba(255, 255, 255, 0.075);
+    }
+
+    .match-setup span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .minute-buttons {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .minute-btn {
+      min-height: 40px;
+      border-radius: 13px;
+      background: rgba(255, 255, 255, 0.065);
+      border: 1px solid color-mix(in oklch, var(--border), white 5%);
+      color: var(--fg);
+      font-weight: 950;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .minute-btn.active {
+      background: var(--accent);
+      color: oklch(12% 0.04 265);
+      box-shadow: 0 12px 28px color-mix(in oklch, var(--accent), transparent 82%);
+    }
+
+    .teacher-panel {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .mini-card {
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .mini-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+
+    .mini-card strong {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      top: 22px;
+      z-index: 20;
+      transform: translate(-50%, -120%);
+      padding: 14px 18px;
+      border-radius: 999px;
+      background: color-mix(in oklch, var(--accent), black 10%);
+      color: oklch(10% 0.04 265);
+      font-weight: 950;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.34);
+      transition: transform 240ms var(--ease);
+    }
+
+    .toast.show { transform: translate(-50%, 0); }
+
+    .burst {
+      position: fixed;
+      inset: 0;
+      z-index: 18;
+      pointer-events: none;
+      opacity: 0;
+      background:
+        radial-gradient(circle at 50% 42%, color-mix(in oklch, var(--burst-color), transparent 34%), transparent 17%),
+        radial-gradient(circle at 50% 50%, color-mix(in oklch, var(--burst-color), transparent 72%), transparent 42%);
+    }
+
+    .burst.play {
+      animation: flash 560ms var(--ease);
+    }
+
+    @keyframes flash {
+      0% { opacity: 0; transform: scale(0.96); }
+      35% { opacity: 1; }
+      100% { opacity: 0; transform: scale(1.04); }
+    }
+
+    @keyframes pop {
+      0% { transform: translateY(12px) scale(0.96); opacity: 0; }
+      100% { transform: none; opacity: 1; }
+    }
+
+    @media (max-width: 1020px) {
+      .app { width: min(100% - 24px, 820px); padding-top: 12px; }
+      .topbar { grid-template-columns: 1fr; border-radius: 20px; }
+      .status-strip { justify-content: flex-start; }
+      .arena {
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas:
+          "stage stage"
+          "teamA teamB";
+      }
+      .center-stage { grid-area: stage; min-height: auto; }
+      .team { min-height: auto; }
+      .team-a { grid-area: teamA; }
+      .team-b { grid-area: teamB; }
+      .score { margin-top: 20px; font-size: clamp(70px, 16vw, 116px); }
+    }
+
+    @media (max-width: 680px) {
+      .app { width: min(100% - 18px, 480px); }
+      .brand { align-items: flex-start; }
+      .mark { width: 40px; height: 40px; border-radius: 13px; font-size: 22px; }
+      .arena {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "stage"
+          "teamA"
+          "teamB";
+      }
+      .round-row {
+        grid-template-columns: 1fr;
+      }
+      .timer-wrap {
+        justify-self: center;
+      }
+      .problem-card {
+        min-height: 330px;
+        border-radius: 24px;
+      }
+      .question {
+        font-size: clamp(46px, 18vw, 76px);
+      }
+      .controls,
+      .teacher-panel,
+      .match-setup {
+        grid-template-columns: 1fr;
+      }
+      .minute-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .team-actions {
+        grid-template-columns: 1fr 1fr;
+      }
+      .team-answer {
+        margin-top: 12px;
+      }
+      .answer-btn {
+        grid-column: span 2;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="burst" id="burst"></div>
+
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark" aria-hidden="true">x²</div>
+        <div>
+          <h1>Power Arena</h1>
+          <div class="subtitle">เกมแบทเทิลเลขยกกำลังสำหรับครูเปิดแข่งหน้าห้อง</div>
+        </div>
+      </div>
+      <div class="status-strip">
+        <div class="chip">รอบ <strong id="roundNo">01</strong></div>
+        <div class="chip">คะแนนข้อนี้ <strong id="roundPoints">10</strong></div>
+        <div class="chip">เวลาแมตช์ <strong id="matchStatus">03:00</strong></div>
+        <div class="chip">โหมด <strong id="modeLabel">ไล่ระดับ</strong></div>
+      </div>
+    </header>
+
+    <section class="arena" aria-label="สนามแข่งขันเลขยกกำลัง">
+      <aside class="team team-a">
+        <div class="team-header">
+          <input class="team-name" id="teamAName" value="ทีมแดง" aria-label="ชื่อทีมแดง" />
+          <div class="badge">A</div>
+        </div>
+        <div class="score" id="scoreA">0</div>
+        <div class="team-label">คะแนนทีม</div>
+        <div class="combo" aria-label="คอมโบทีมแดง">
+          <span>คอมโบ <strong id="comboA">0</strong></span>
+          <div class="combo-meter"><span class="combo-fill" id="comboFillA"></span></div>
+        </div>
+        <div class="team-answer">
+          <label for="answerA">คำตอบทีมแดง</label>
+          <input class="answer-input" id="answerA" autocomplete="off" inputmode="text" placeholder="เช่น 2^8 หรือ x^3y^2" />
+          <div class="answer-feedback" id="feedbackA">พิมพ์คำตอบสุดท้ายก่อนกดตรวจ</div>
+        </div>
+        <div class="team-actions">
+          <button class="answer-btn" data-team="A">ตรวจคำตอบทีมนี้</button>
+          <button class="minor-btn" data-adjust="A:-5">-5</button>
+          <button class="minor-btn" data-adjust="A:5">+5</button>
+        </div>
+      </aside>
+
+      <section class="center-stage">
+        <div class="round-row">
+          <div class="difficulty-track" id="difficultyTrack" aria-label="แถบระดับความยาก"></div>
+          <div class="timer-wrap" id="timerRing" style="--timer-deg: 360deg">
+            <div class="timer" id="timer">03:00</div>
+          </div>
+          <div class="difficulty-track" id="difficultyTrackMirror" aria-hidden="true"></div>
+        </div>
+
+        <article class="problem-card">
+          <div class="round-kicker" id="roundKicker">พื้นฐาน · คำนวณตรง ๆ</div>
+          <h2 class="question" id="question">2³ = ?</h2>
+          <p class="hint" id="hint">ตอบให้ไว ทีมที่ตอบถูกจะได้คะแนนและคอมโบเพิ่ม</p>
+          <div class="format-help" aria-label="รูปแบบคำตอบที่ระบบรับได้">
+            <span>ยกกำลัง: 2^5 หรือ 2⁵</span>
+            <span>ตัวแปร: x^3y^2</span>
+            <span>เศษส่วน: 1/8 หรือ 1/2^3</span>
+          </div>
+          <div class="answer-reveal" id="answerReveal">คำตอบ: 8</div>
+        </article>
+
+        <div>
+          <div class="controls" aria-label="ปุ่มควบคุมเกมสำหรับครู">
+            <button class="control-btn primary" id="startBtn">เริ่มแมตช์</button>
+            <button class="control-btn" id="pauseBtn">พักเวลา</button>
+            <button class="control-btn" id="nextBtn">โจทย์ถัดไป</button>
+            <button class="control-btn" id="revealBtn">เฉลย</button>
+            <button class="control-btn" id="resetBtn">รีเซ็ต</button>
+          </div>
+          <div class="match-setup" aria-label="ตั้งค่าเวลาแมตช์">
+            <span>เวลาแข่ง</span>
+            <div class="minute-buttons" id="minuteButtons">
+              <button class="minute-btn" data-minutes="1">1 นาที</button>
+              <button class="minute-btn active" data-minutes="3">3 นาที</button>
+              <button class="minute-btn" data-minutes="5">5 นาที</button>
+              <button class="minute-btn" data-minutes="10">10 นาที</button>
+            </div>
+          </div>
+          <div class="teacher-panel">
+            <div class="mini-card">
+              <span>คำแนะนำครู</span>
+              <strong id="teacherTip">กดเริ่มแมตช์ แล้วให้ทั้งสองทีมแข่งสะสมคะแนนจากโจทย์เดียวกัน</strong>
+            </div>
+            <div class="mini-card">
+              <span>รูปแบบโจทย์</span>
+              <strong id="patternLabel">aⁿ</strong>
+            </div>
+            <div class="mini-card">
+              <span>อุปกรณ์ทีม</span>
+              <strong>เปิดบนจอทีมได้ แต่ซิงก์หลายเครื่องจริงต้องมี room code</strong>
+            </div>
+            <div class="mini-card">
+              <span>กติกา</span>
+              <strong>ทีมที่ตอบถูกก่อน ได้แต้ม แล้วไปข้อถัดไปทันที</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="team team-b">
+        <div class="team-header">
+          <input class="team-name" id="teamBName" value="ทีมน้ำเงิน" aria-label="ชื่อทีมน้ำเงิน" />
+          <div class="badge">B</div>
+        </div>
+        <div class="score" id="scoreB">0</div>
+        <div class="team-label">คะแนนทีม</div>
+        <div class="combo" aria-label="คอมโบทีมน้ำเงิน">
+          <span>คอมโบ <strong id="comboB">0</strong></span>
+          <div class="combo-meter"><span class="combo-fill" id="comboFillB"></span></div>
+        </div>
+        <div class="team-answer">
+          <label for="answerB">คำตอบทีมน้ำเงิน</label>
+          <input class="answer-input" id="answerB" autocomplete="off" inputmode="text" placeholder="เช่น 1/3^4 หรือ a^6/b^2" />
+          <div class="answer-feedback" id="feedbackB">พิมพ์คำตอบสุดท้ายก่อนกดตรวจ</div>
+        </div>
+        <div class="team-actions">
+          <button class="answer-btn" data-team="B">ตรวจคำตอบทีมนี้</button>
+          <button class="minor-btn" data-adjust="B:-5">-5</button>
+          <button class="minor-btn" data-adjust="B:5">+5</button>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const gameState = {
+      round: 1,
+      scoreA: 0,
+      scoreB: 0,
+      comboA: 0,
+      comboB: 0,
+      current: null,
+      matchDuration: 180,
+      matchRemaining: 180,
+      timerId: null,
+      running: false,
+      matchStarted: false,
+      matchOver: false,
+      roundLocked: false,
+      revealed: false
+    };
+
+    const problemTypes = [
+      {
+        level: "เข้มข้น",
+        pattern: "คูณ + หาร",
+        tip: "ให้แต่ละทีมลดรูปเป็นคำตอบสุดท้าย ระบบรับทั้ง 2^n และเลขยกกำลังแบบตัวยก",
+        build() {
+          const base = randomInt(2, 5);
+          const a = randomInt(4, 8);
+          const b = randomInt(2, 6);
+          const c = randomInt(1, Math.min(4, a + b - 3));
+          const answer = `${base}^${a + b - c}`;
+          return {
+            question: `(${base}${sup(a)} × ${base}${sup(b)}) ÷ ${base}${sup(c)} = ?`,
+            answer,
+            accepted: [answer, String(base ** (a + b - c))],
+            hint: "ใช้ฐานเดียวกัน: คูณให้บวกเลขชี้กำลัง แล้วหารให้ลบเลขชี้กำลัง",
+            points: 20
+          };
+        }
+      },
+      {
+        level: "เข้มข้น",
+        pattern: "ยกกำลังซ้อน + หาร",
+        tip: "โจทย์นี้เหมาะให้ถามเหตุผลหลังตอบถูก: ขั้นแรกคูณเลขชี้กำลัง แล้วค่อยลบ",
+        build() {
+          const base = randomInt(2, 5);
+          const a = randomInt(2, 4);
+          const b = randomInt(2, 4);
+          const c = randomInt(1, Math.max(1, a * b - 3));
+          const answer = `${base}^${a * b - c}`;
+          return {
+            question: `(${base}${sup(a)})${sup(b)} ÷ ${base}${sup(c)} = ?`,
+            answer,
+            accepted: [answer, String(base ** (a * b - c))],
+            hint: "ยกกำลังซ้อนให้นำเลขชี้กำลังมาคูณกัน จากนั้นใช้กฎการหารฐานเดียวกัน",
+            points: 25
+          };
+        }
+      },
+      {
+        level: "ท้าทาย",
+        pattern: "ผลคูณยกกำลัง + หารตัวแปร",
+        tip: "คำตอบสุดท้ายควรมีทั้ง x และ y ระบบรับรูปแบบติดกัน เช่น x^5y^2",
+        build() {
+          const x = randomInt(2, 4);
+          const y = randomInt(1, 3);
+          const power = randomInt(2, 3);
+          const cutX = randomInt(1, x);
+          const answerX = x * power - cutX;
+          const answerY = y * power;
+          const answer = `x^${answerX}y^${answerY}`;
+          return {
+            question: `((x${sup(x)}y${sup(y)})${sup(power)}) ÷ x${sup(cutX)} = ?`,
+            answer,
+            accepted: [answer, `y^${answerY}x^${answerX}`],
+            hint: "กระจายเลขชี้กำลังเข้าไปในผลคูณก่อน แล้วลดรูปด้วยการหารฐานเดียวกัน",
+            points: 30
+          };
+        }
+      },
+      {
+        level: "บอส",
+        pattern: "เลขชี้กำลังศูนย์ + เศษส่วน",
+        tip: "รอบนี้ตั้งใจให้เหลือคำตอบเป็นเศษส่วน อย่าลืมว่าฐานที่ไม่เป็นศูนย์ยกกำลังศูนย์เท่ากับ 1",
+        build() {
+          const base = randomInt(2, 5);
+          const a = randomInt(1, 3);
+          const b = a + randomInt(2, 4);
+          const answer = `1/${base}^${b - a}`;
+          return {
+            question: `(${base}${sup(a)} ÷ ${base}${sup(b)}) × (${base}${sup(3)} ÷ ${base}${sup(3)}) = ?`,
+            answer,
+            accepted: [answer, `1/${base ** (b - a)}`],
+            hint: "ส่วนที่สองมีค่าเป็น 1 แล้วส่วนแรกจะเหลือเลขชี้กำลังติดลบ จึงเขียนเป็นเศษส่วน",
+            points: 35
+          };
+        }
+      },
+      {
+        level: "บอส",
+        pattern: "หลายฐาน + ตัวแปร + เศษส่วน",
+        tip: "ให้ทีมเขียนเฉพาะคำตอบสุดท้าย ไม่ต้องใส่เครื่องหมายเท่ากับ",
+        build() {
+          const a = randomInt(2, 4);
+          const b = randomInt(2, 4);
+          const c = randomInt(1, 2);
+          const d = b + randomInt(1, 3);
+          const answer = `a^${a + c}/b^${d - b}`;
+          return {
+            question: `(a${sup(a)}b${sup(b)} × a${sup(c)}) ÷ b${sup(d)} = ?`,
+            answer,
+            accepted: [answer, `a^${a + c}b^-${d - b}`],
+            hint: "รวมเลขชี้กำลังของ a ด้วยการบวก และเลขชี้กำลังของ b ด้วยการลบจนกลายเป็นส่วน",
+            points: 40
+          };
+        }
+      }
+    ];
+
+    const els = {
+      roundNo: document.getElementById("roundNo"),
+      roundPoints: document.getElementById("roundPoints"),
+      matchStatus: document.getElementById("matchStatus"),
+      scoreA: document.getElementById("scoreA"),
+      scoreB: document.getElementById("scoreB"),
+      comboA: document.getElementById("comboA"),
+      comboB: document.getElementById("comboB"),
+      comboFillA: document.getElementById("comboFillA"),
+      comboFillB: document.getElementById("comboFillB"),
+      question: document.getElementById("question"),
+      hint: document.getElementById("hint"),
+      answerReveal: document.getElementById("answerReveal"),
+      answerA: document.getElementById("answerA"),
+      answerB: document.getElementById("answerB"),
+      feedbackA: document.getElementById("feedbackA"),
+      feedbackB: document.getElementById("feedbackB"),
+      roundKicker: document.getElementById("roundKicker"),
+      patternLabel: document.getElementById("patternLabel"),
+      teacherTip: document.getElementById("teacherTip"),
+      timer: document.getElementById("timer"),
+      timerRing: document.getElementById("timerRing"),
+      startBtn: document.getElementById("startBtn"),
+      pauseBtn: document.getElementById("pauseBtn"),
+      nextBtn: document.getElementById("nextBtn"),
+      revealBtn: document.getElementById("revealBtn"),
+      resetBtn: document.getElementById("resetBtn"),
+      minuteButtons: document.getElementById("minuteButtons"),
+      toast: document.getElementById("toast"),
+      burst: document.getElementById("burst"),
+      difficultyTrack: document.getElementById("difficultyTrack"),
+      difficultyTrackMirror: document.getElementById("difficultyTrackMirror")
+    };
+
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function formatClock(seconds) {
+      const safeSeconds = Math.max(0, seconds);
+      const minutes = Math.floor(safeSeconds / 60);
+      const rest = safeSeconds % 60;
+      return `${String(minutes).padStart(2, "0")}:${String(rest).padStart(2, "0")}`;
+    }
+
+    function sup(value) {
+      const map = { 0: "⁰", 1: "¹", 2: "²", 3: "³", 4: "⁴", 5: "⁵", 6: "⁶", 7: "⁷", 8: "⁸", 9: "⁹", "?": "?" };
+      return String(value).split("").map((char) => map[char] || char).join("");
+    }
+
+    function gcd(a, b) {
+      a = Math.abs(a);
+      b = Math.abs(b);
+      while (b) [a, b] = [b, a % b];
+      return a || 1;
+    }
+
+    function normalizeMathText(value) {
+      const supMap = { "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4", "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9", "⁻": "-" };
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]+/g, (match) => `^${match.split("").map((char) => supMap[char] || char).join("")}`)
+        .replace(/[÷:]/g, "/")
+        .replace(/[×·]/g, "*")
+        .replace(/[−–—]/g, "-")
+        .replace(/[(){}\[\]\s]/g, "")
+        .replace(/^.*=/, "");
+    }
+
+    function multiplyNumber(model, base, exp, side) {
+      const value = base ** Math.abs(exp);
+      if (exp * side >= 0) model.num *= value;
+      else model.den *= value;
+    }
+
+    function addVariablePower(model, variable, exp, side) {
+      model.vars[variable] = (model.vars[variable] || 0) + exp * side;
+      if (model.vars[variable] === 0) delete model.vars[variable];
+    }
+
+    function parseFactor(model, token, side) {
+      if (!token || token === "1") return true;
+      const numberPower = token.match(/^(\d+)(?:\^(-?\d+))?$/);
+      if (numberPower) {
+        multiplyNumber(model, Number(numberPower[1]), Number(numberPower[2] || 1), side);
+        return true;
+      }
+
+      let consumed = "";
+      const variablePattern = /([a-z])(?:\^(-?\d+))?/g;
+      let match;
+      while ((match = variablePattern.exec(token))) {
+        consumed += match[0];
+        addVariablePower(model, match[1], Number(match[2] || 1), side);
+      }
+      return consumed === token;
+    }
+
+    function canonicalizeAnswer(value) {
+      const normalized = normalizeMathText(value);
+      if (!normalized) return null;
+      const model = { num: 1, den: 1, vars: {} };
+      const parts = normalized.split("/");
+      if (parts.some((part) => part === "")) return null;
+      const parseSide = (text, side) => text.split("*").filter(Boolean).every((token) => parseFactor(model, token, side));
+      if (!parseSide(parts[0], 1)) return null;
+      for (let i = 1; i < parts.length; i += 1) {
+        if (!parseSide(parts[i], -1)) return null;
+      }
+
+      const divisor = gcd(model.num, model.den);
+      model.num /= divisor;
+      model.den /= divisor;
+      const vars = Object.entries(model.vars)
+        .filter(([, exp]) => exp !== 0)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([name, exp]) => `${name}:${exp}`)
+        .join(",");
+      return `${model.num}/${model.den}|${vars}`;
+    }
+
+    function acceptedCanonicals(problem) {
+      return (problem.accepted || [problem.answer])
+        .map(canonicalizeAnswer)
+        .filter(Boolean);
+    }
+
+    function chooseType() {
+      const cap = Math.min(problemTypes.length - 1, Math.floor((gameState.round - 1) / 3));
+      return problemTypes[randomInt(0, cap)];
+    }
+
+    function buildDifficultyTrack() {
+      [els.difficultyTrack, els.difficultyTrackMirror].forEach((track) => {
+        track.innerHTML = "";
+        problemTypes.forEach((_, index) => {
+          const dot = document.createElement("span");
+          dot.className = "level-dot";
+          if (index <= Math.min(problemTypes.length - 1, Math.floor((gameState.round - 1) / 3))) dot.classList.add("active");
+          track.appendChild(dot);
+        });
+      });
+    }
+
+    function nextProblem() {
+      const type = chooseType();
+      const built = type.build();
+      gameState.current = { ...built, acceptedKeys: acceptedCanonicals(built), level: type.level, pattern: type.pattern, tip: type.tip };
+      gameState.revealed = false;
+      gameState.roundLocked = false;
+      els.answerReveal.classList.remove("show");
+      clearTeamAnswers();
+      paint();
+    }
+
+    function paint() {
+      const current = gameState.current;
+      els.roundNo.textContent = String(gameState.round).padStart(2, "0");
+      els.scoreA.textContent = gameState.scoreA;
+      els.scoreB.textContent = gameState.scoreB;
+      els.matchStatus.textContent = formatClock(gameState.matchRemaining);
+      els.comboA.textContent = gameState.comboA;
+      els.comboB.textContent = gameState.comboB;
+      els.comboFillA.style.width = `${Math.min(100, gameState.comboA * 20)}%`;
+      els.comboFillB.style.width = `${Math.min(100, gameState.comboB * 20)}%`;
+      els.timer.textContent = formatClock(gameState.matchRemaining);
+      els.timerRing.style.setProperty("--timer-deg", `${(gameState.matchRemaining / gameState.matchDuration) * 360}deg`);
+      els.startBtn.textContent = gameState.matchStarted ? (gameState.running ? "กำลังแข่ง" : "แข่งต่อ") : "เริ่มแมตช์";
+      els.startBtn.disabled = gameState.matchOver;
+      els.pauseBtn.textContent = gameState.running ? "พักเวลา" : "หยุดพัก";
+      els.pauseBtn.disabled = !gameState.matchStarted || gameState.matchOver;
+      els.nextBtn.disabled = gameState.matchOver;
+      els.minuteButtons.querySelectorAll(".minute-btn").forEach((button) => {
+        button.disabled = gameState.matchStarted && !gameState.matchOver;
+      });
+      document.querySelectorAll(".answer-btn").forEach((button) => {
+        button.disabled = gameState.matchOver;
+      });
+      if (current) {
+        els.question.textContent = current.question;
+        els.hint.textContent = current.hint;
+        els.answerReveal.textContent = `คำตอบ: ${current.answer}`;
+        els.roundKicker.textContent = `${current.level} · ${current.pattern}`;
+        els.patternLabel.textContent = current.pattern;
+        els.teacherTip.textContent = current.tip;
+        els.roundPoints.textContent = String(current.points);
+      }
+      buildDifficultyTrack();
+    }
+
+    function startTimer() {
+      if (gameState.matchOver) return;
+      if (!gameState.matchStarted) {
+        gameState.matchStarted = true;
+        gameState.matchRemaining = gameState.matchDuration;
+        showToast("เริ่มแมตช์: ทีมที่ตอบถูกจะไปข้อถัดไปทันที");
+      }
+      if (gameState.running) return;
+      gameState.running = true;
+      gameState.timerId = window.setInterval(() => {
+        gameState.matchRemaining -= 1;
+        if (gameState.matchRemaining <= 0) {
+          gameState.matchRemaining = 0;
+          gameState.matchOver = true;
+          stopTimer();
+          revealAnswer();
+          showToast("หมดเวลาแมตช์! ดูคะแนนรวมเพื่อตัดสินผู้ชนะ");
+        }
+        paint();
+      }, 1000);
+      paint();
+    }
+
+    function stopTimer() {
+      window.clearInterval(gameState.timerId);
+      gameState.timerId = null;
+      gameState.running = false;
+      paint();
+    }
+
+    function pauseTimer() {
+      if (!gameState.matchStarted || gameState.matchOver) return;
+      if (gameState.running) {
+        stopTimer();
+        showToast("พักเวลาแล้ว");
+      } else {
+        startTimer();
+      }
+    }
+
+    function resetMatch() {
+      stopTimer();
+      gameState.round = 1;
+      gameState.scoreA = 0;
+      gameState.scoreB = 0;
+      gameState.comboA = 0;
+      gameState.comboB = 0;
+      gameState.matchRemaining = gameState.matchDuration;
+      gameState.matchStarted = false;
+      gameState.matchOver = false;
+      gameState.roundLocked = false;
+      nextProblem();
+      showToast("รีเซ็ตแมตช์แล้ว");
+    }
+
+    function revealAnswer() {
+      gameState.revealed = true;
+      els.answerReveal.classList.add("show");
+    }
+
+    function clearTeamAnswers() {
+      ["A", "B"].forEach((team) => {
+        const input = team === "A" ? els.answerA : els.answerB;
+        const feedback = team === "A" ? els.feedbackA : els.feedbackB;
+        input.value = "";
+        input.classList.remove("correct", "wrong");
+        feedback.textContent = "พิมพ์คำตอบสุดท้ายก่อนกดตรวจ";
+      });
+    }
+
+    function setTeamFeedback(team, state, message) {
+      const input = team === "A" ? els.answerA : els.answerB;
+      const feedback = team === "A" ? els.feedbackA : els.feedbackB;
+      input.classList.remove("correct", "wrong");
+      if (state) input.classList.add(state);
+      feedback.textContent = message;
+    }
+
+    function award(team) {
+      if (!gameState.current) return;
+      if (gameState.roundLocked) return;
+      gameState.roundLocked = true;
+      const comboKey = team === "A" ? "comboA" : "comboB";
+      const otherComboKey = team === "A" ? "comboB" : "comboA";
+      const scoreKey = team === "A" ? "scoreA" : "scoreB";
+      gameState[comboKey] += 1;
+      gameState[otherComboKey] = 0;
+      const bonus = Math.max(0, gameState[comboKey] - 1) * 3;
+      gameState[scoreKey] += gameState.current.points + bonus;
+      revealAnswer();
+      burst(team === "A" ? "var(--team-a)" : "var(--team-b)");
+      showToast(`${team === "A" ? document.getElementById("teamAName").value : document.getElementById("teamBName").value} ได้ ${gameState.current.points + bonus} คะแนน ไปข้อถัดไป!`);
+      paint();
+      window.setTimeout(() => {
+        if (!gameState.matchOver) {
+          gameState.round += 1;
+          nextProblem();
+        }
+      }, 650);
+    }
+
+    function checkTeamAnswer(team) {
+      if (!gameState.current) return;
+      if (gameState.roundLocked) {
+        showToast("ข้อนี้มีทีมตอบถูกแล้ว กำลังไปข้อถัดไป");
+        return;
+      }
+      if (gameState.matchOver) {
+        showToast("หมดเวลาแมตช์แล้ว");
+        return;
+      }
+      if (!gameState.matchStarted) {
+        showToast("กดเริ่มแมตช์ก่อนรับคำตอบ");
+        return;
+      }
+      const input = team === "A" ? els.answerA : els.answerB;
+      const typed = input.value;
+      const parsed = canonicalizeAnswer(typed);
+      if (!parsed) {
+        setTeamFeedback(team, "wrong", "ยังอ่านรูปแบบนี้ไม่ได้ ลองใช้ ^ สำหรับเลขชี้กำลัง หรือ / สำหรับเศษส่วน");
+        showToast("ตรวจไม่ได้: รูปแบบคำตอบยังไม่ถูกต้อง");
+        return;
+      }
+      if (gameState.current.acceptedKeys.includes(parsed)) {
+        setTeamFeedback(team, "correct", "ถูกต้อง ระบบให้คะแนนและเปิดเฉลยแล้ว");
+        award(team);
+        return;
+      }
+      const comboKey = team === "A" ? "comboA" : "comboB";
+      gameState[comboKey] = 0;
+      setTeamFeedback(team, "wrong", "ยังไม่ถูก ลองลดรูปอีกครั้งหรือกดเฉลยเมื่อพร้อม");
+      showToast("คำตอบยังไม่ตรงกับเฉลย");
+      paint();
+    }
+
+    function adjustScore(team, value) {
+      const key = team === "A" ? "scoreA" : "scoreB";
+      gameState[key] = Math.max(0, gameState[key] + value);
+      paint();
+    }
+
+    function burst(color) {
+      els.burst.style.setProperty("--burst-color", color);
+      els.burst.classList.remove("play");
+      void els.burst.offsetWidth;
+      els.burst.classList.add("play");
+    }
+
+    function showToast(message) {
+      els.toast.textContent = message;
+      els.toast.classList.add("show");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => els.toast.classList.remove("show"), 1700);
+    }
+
+    document.querySelectorAll("[data-team]").forEach((button) => {
+      button.addEventListener("click", () => checkTeamAnswer(button.dataset.team));
+    });
+
+    els.answerA.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") checkTeamAnswer("A");
+    });
+    els.answerB.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") checkTeamAnswer("B");
+    });
+
+    document.querySelectorAll("[data-adjust]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const [team, value] = button.dataset.adjust.split(":");
+        adjustScore(team, Number(value));
+      });
+    });
+
+    els.startBtn.addEventListener("click", startTimer);
+    els.pauseBtn.addEventListener("click", pauseTimer);
+    els.resetBtn.addEventListener("click", resetMatch);
+    els.nextBtn.addEventListener("click", () => {
+      gameState.round += 1;
+      nextProblem();
+    });
+    els.revealBtn.addEventListener("click", () => {
+      revealAnswer();
+    });
+    els.minuteButtons.querySelectorAll(".minute-btn").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (gameState.matchStarted && !gameState.matchOver) return;
+        gameState.matchDuration = Number(button.dataset.minutes) * 60;
+        gameState.matchRemaining = gameState.matchDuration;
+        els.minuteButtons.querySelectorAll(".minute-btn").forEach((item) => item.classList.toggle("active", item === button));
+        showToast(`ตั้งเวลาแข่ง ${button.dataset.minutes} นาที`);
+        paint();
+      });
+    });
+
+    window.addEventListener("keydown", (event) => {
+      if (event.target && (event.target.tagName === "INPUT" || event.target.tagName === "TEXTAREA")) return;
+      if (event.key.toLowerCase() === "r") {
+        resetMatch();
+      }
+      if (event.key === " ") {
+        event.preventDefault();
+        pauseTimer();
+      }
+    });
+
+    gameState.matchRemaining = gameState.matchDuration;
+    nextProblem();
+    paint();
+  </script>
+</body>
+</html>

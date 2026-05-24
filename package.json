@@ -1,0 +1,14 @@
+{
+  "name": "power-arena-exponent-battle",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Power Arena classroom exponent battle game with realtime room code flow.",
+  "scripts": {
+    "start": "node room-server.js",
+    "check": "node --check room-server.js && node --check shared-game.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

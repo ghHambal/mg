@@ -1,0 +1,26 @@
+{
+  "kind": "critique-panel",
+  "score": 4,
+  "axes": {
+    "clarity": {
+      "score": 4,
+      "notes": "Host now has a clear tournament flow: enter the team roster, start pairings, run the current match, then record the winner and advance to the next pair."
+    },
+    "hierarchy": {
+      "score": 4,
+      "notes": "Current match remains dominant, while the dashboard adds leaderboard, match note, and history without crowding the problem or timer."
+    },
+    "typography": {
+      "score": 4,
+      "notes": "Projector-facing text remains large, while mobile team entry preserves big answer fields, compact status, and touch-sized controls."
+    },
+    "motion": {
+      "score": 4,
+      "notes": "Tournament state, current pair, and leaderboard sync through the same room state so Host, Scoreboard, and team devices stay aligned."
+    },
+    "brand": {
+      "score": 4,
+      "notes": "The battle arena and classroom game-show direction stays consistent across the online room flow and the single-machine backup."
+    }
+  }
+}

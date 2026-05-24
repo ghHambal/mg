@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Power Arena Scoreboard</title>
+  <style>
+    :root {
+      --bg: oklch(10% 0.055 265);
+      --surface: oklch(17% 0.05 265);
+      --fg: oklch(98% 0.01 250);
+      --muted: oklch(76% 0.025 260);
+      --border: oklch(34% 0.065 265);
+      --accent: oklch(72% 0.19 86);
+      --red: oklch(65% 0.22 29);
+      --blue: oklch(65% 0.18 235);
+      --font-display: "Avenir Next", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      --font-mono: "SFMono-Regular", ui-monospace, Menlo, monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 15% 8%, color-mix(in oklch, var(--blue), transparent 56%), transparent 32%),
+        radial-gradient(circle at 88% 5%, color-mix(in oklch, var(--red), transparent 56%), transparent 31%),
+        linear-gradient(135deg, oklch(8% 0.05 268), var(--bg));
+    }
+    .stage { min-height: 100vh; padding: 28px; display: grid; grid-template-rows: auto 1fr auto; gap: 18px; }
+    .top { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 18px; }
+    h1 { margin: 0; font: 950 clamp(42px, 5vw, 88px)/.9 var(--font-display); letter-spacing: -.05em; }
+    .room { justify-self: end; font: 900 26px/1 var(--font-mono); color: var(--accent); letter-spacing: .08em; }
+    .clock {
+      justify-self: center;
+      min-width: 220px;
+      padding: 16px 22px;
+      border-radius: 28px;
+      text-align: center;
+      background: var(--accent);
+      color: oklch(12% 0.04 265);
+      font: 950 clamp(42px, 5vw, 76px)/1 var(--font-mono);
+      box-shadow: 0 24px 70px color-mix(in oklch, var(--accent), transparent 74%);
+    }
+    .arena { display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: 18px; min-height: 0; }
+    .team {
+      display: grid;
+      align-content: center;
+      gap: 20px;
+      border: 1px solid color-mix(in oklch, var(--team), white 12%);
+      border-radius: 34px;
+      padding: 26px;
+      background: linear-gradient(180deg, color-mix(in oklch, var(--team), transparent 76%), color-mix(in oklch, var(--surface), transparent 6%));
+      text-align: center;
+    }
+    .team-a { --team: var(--red); }
+    .team-b { --team: var(--blue); }
+    .team h2 { margin: 0; font: 950 clamp(32px, 4vw, 62px)/.95 var(--font-display); }
+    .score { font: 950 clamp(110px, 14vw, 220px)/.78 var(--font-mono); letter-spacing: -.1em; color: var(--team); }
+    .combo, .feedback { color: var(--muted); font-size: clamp(18px, 2vw, 28px); }
+    .problem {
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      gap: 18px;
+      padding: 34px;
+      border: 1px solid color-mix(in oklch, var(--border), white 6%);
+      border-radius: 38px;
+      background: color-mix(in oklch, var(--surface), transparent 5%);
+      text-align: center;
+      box-shadow: 0 26px 90px rgba(0,0,0,.26);
+    }
+    .kicker { color: var(--muted); font-weight: 950; letter-spacing: .16em; text-transform: uppercase; }
+    .question { margin: 0; font: 950 clamp(72px, 10vw, 150px)/1 var(--font-display); letter-spacing: -.05em; text-wrap: balance; }
+    .hint { width: min(820px, 100%); color: var(--muted); font-size: clamp(20px, 2vw, 30px); line-height: 1.45; }
+    .answer { display: none; color: var(--accent); font: 950 clamp(34px, 4vw, 62px)/1.1 var(--font-mono); }
+    .answer.show { display: block; }
+    .bottom { display: flex; justify-content: space-between; gap: 16px; color: var(--muted); font: 850 18px/1.3 var(--font-mono); }
+    .ticker {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      color: var(--accent);
+      font: 950 clamp(18px, 2vw, 30px)/1.2 var(--font-display);
+      text-align: center;
+    }
+    @media (max-width: 980px) {
+      body { overflow: auto; }
+      .stage { padding: 16px; }
+      .top, .arena { grid-template-columns: 1fr; }
+      .room, .clock { justify-self: stretch; }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <header class="top">
+      <h1>Power Arena</h1>
+      <div class="clock" id="clock">03:00</div>
+      <div class="room" id="room">POWER-4821</div>
+    </header>
+    <div class="ticker" id="tournamentInfo">รอครูเริ่มทัวร์นาเมนต์</div>
+    <section class="arena">
+      <aside class="team team-a">
+        <h2 id="nameA">ทีมแดง</h2>
+        <div class="score" id="scoreA">0</div>
+        <div class="combo" id="comboA">คอมโบ 0</div>
+        <div class="feedback" id="feedbackA">รอเข้าห้อง</div>
+      </aside>
+      <section class="problem">
+        <div class="kicker" id="kicker">รอบ 01 · LOBBY</div>
+        <h2 class="question" id="question">รอครูสร้างห้อง</h2>
+        <p class="hint" id="hint">เปิด Teacher Host แล้วส่งรหัสห้องให้เด็กแต่ละทีม</p>
+        <div class="answer" id="answer"></div>
+      </section>
+      <aside class="team team-b">
+        <h2 id="nameB">ทีมน้ำเงิน</h2>
+        <div class="score" id="scoreB">0</div>
+        <div class="combo" id="comboB">คอมโบ 0</div>
+        <div class="feedback" id="feedbackB">รอเข้าห้อง</div>
+      </aside>
+    </section>
+    <footer class="bottom">
+      <span>เด็กเข้าผ่าน team.html?room=<span id="roomSmall">POWER-4821</span></span>
+      <span>คำตอบรับ: 2^8 · 2⁸ · x^3y^2 · 1/2^4</span>
+    </footer>
+  </main>
+
+  <script src="shared-game.js"></script>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let room = PowerArena.loadRoom(new URLSearchParams(location.search).get("room") || PowerArena.DEFAULT_ROOM);
+    const sync = PowerArena.createSync(room.code, (next) => { room = next; paint(); });
+
+    function publish(next) {
+      room = sync.publish(next);
+      paint();
+    }
+
+    function paint() {
+      room = PowerArena.applyTick(room);
+      $("clock").textContent = PowerArena.formatClock(room.remaining);
+      $("room").textContent = room.code;
+      $("roomSmall").textContent = room.code;
+      $("nameA").textContent = room.teams.A.name;
+      $("nameB").textContent = room.teams.B.name;
+      $("scoreA").textContent = room.teams.A.score;
+      $("scoreB").textContent = room.teams.B.score;
+      $("comboA").textContent = `คอมโบ ${room.teams.A.combo}`;
+      $("comboB").textContent = `คอมโบ ${room.teams.B.combo}`;
+      $("feedbackA").textContent = room.teams.A.feedback;
+      $("feedbackB").textContent = room.teams.B.feedback;
+      $("kicker").textContent = `รอบ ${String(room.round).padStart(2, "0")} · ${room.problem.level} · ${room.status.toUpperCase()}`;
+      $("question").textContent = room.problem.question;
+      $("hint").textContent = room.problem.hint;
+      $("answer").textContent = `คำตอบ: ${room.problem.answer}`;
+      $("answer").classList.toggle("show", room.reveal || room.status === "ended");
+      const tournament = room.tournament;
+      $("tournamentInfo").textContent = tournament.champion
+        ? `แชมป์ทัวร์นาเมนต์: ${tournament.champion.name}`
+        : tournament.currentPair
+          ? `รอบทัวร์นาเมนต์ ${tournament.round} · คู่ที่ ${tournament.matchNo}: ${tournament.currentPair.A.name} ปะทะ ${tournament.currentPair.B.name}`
+          : "รอครูเริ่มทัวร์นาเมนต์";
+      PowerArena.saveRoom(room);
+    }
+
+    setInterval(() => {
+      if (room.status === "running" && PowerArena.hasServerSync()) {
+        PowerArena.fetchRoom(room.code).then((next) => { room = next; paint(); }).catch(() => paint());
+      } else if (room.status === "running") {
+        publish(PowerArena.applyTick(room));
+      } else {
+        paint();
+      }
+    }, 500);
+    paint();
+  </script>
+</body>
+</html>
