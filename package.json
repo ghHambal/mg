@@ -1,0 +1,11 @@
+{
+  "name": "power-arena-root",
+  "private": true,
+  "scripts": {
+    "postinstall": "npm --prefix MathCode install",
+    "start": "npm --prefix MathCode start"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
