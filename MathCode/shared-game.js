@@ -29,6 +29,13 @@
     return `${String(minutes).padStart(2, "0")}:${String(rest).padStart(2, "0")}`;
   }
 
+  function simplifyPrimeBase(base, exp) {
+    if (base === 4) {
+      return { base: 2, exp: exp * 2 };
+    }
+    return { base, exp };
+  }
+
   function normalizeMathText(value) {
     const unicode = { "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4", "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9", "⁻": "-" };
     return String(value || "")
@@ -104,11 +111,14 @@
         const b = randomInt(3, 7);
         const c = randomInt(2, 5);
         const exp = a + b - c;
+        const prime = simplifyPrimeBase(base, exp);
         return {
           question: `(${base}${sup(a)} × ${base}${sup(b)}) ÷ ${base}${sup(c)} = ?`,
-          answer: `${base}^${exp}`,
-          accepted: [`${base}^${exp}`, String(base ** exp)],
-          hint: "คูณฐานเดียวกันให้บวกเลขชี้กำลัง แล้วหารให้ลบเลขชี้กำลัง",
+          answer: `${prime.base}^${prime.exp}`,
+          accepted: [`${prime.base}^${prime.exp}`, String(prime.base ** prime.exp)],
+          hint: base === 4
+            ? "คูณฐานเดียวกันให้บวกเลขชี้กำลัง แล้วหารให้ลบเลขชี้กำลัง (และอย่าลืมแปลงฐาน 4 ให้เป็นฐาน 2 ด้วยนะ!)"
+            : "คูณฐานเดียวกันให้บวกเลขชี้กำลัง แล้วหารให้ลบเลขชี้กำลัง",
           points: 20
         };
       }
@@ -122,11 +132,14 @@
         const b = randomInt(3, 5);
         const c = randomInt(2, 6);
         const exp = a * b - c;
+        const prime = simplifyPrimeBase(base, exp);
         return {
           question: `(${base}${sup(a)})${sup(b)} ÷ ${base}${sup(c)} = ?`,
-          answer: `${base}^${exp}`,
-          accepted: [`${base}^${exp}`, String(base ** exp)],
-          hint: "ยกกำลังซ้อนให้นำเลขชี้กำลังคูณกัน จากนั้นลดด้วยกฎการหาร",
+          answer: `${prime.base}^${prime.exp}`,
+          accepted: [`${prime.base}^${prime.exp}`, String(prime.base ** prime.exp)],
+          hint: base === 4
+            ? "ยกกำลังซ้อนให้นำเลขชี้กำลังคูณกัน จากนั้นลดด้วยกฎการหาร (และอย่าลืมแปลงฐาน 4 ให้เป็นฐาน 2 ด้วยนะ!)"
+            : "ยกกำลังซ้อนให้นำเลขชี้กำลังคูณกัน จากนั้นลดด้วยกฎการหาร",
           points: 25
         };
       }
@@ -158,11 +171,14 @@
         const a = randomInt(1, 4);
         const b = a + randomInt(2, 5);
         const exp = b - a;
+        const prime = simplifyPrimeBase(base, exp);
         return {
           question: `(${base}${sup(a)} ÷ ${base}${sup(b)}) × (${base}${sup(3)} ÷ ${base}${sup(3)}) = ?`,
-          answer: `1/${base}^${exp}`,
-          accepted: [`1/${base}^${exp}`, `1/${base ** exp}`],
-          hint: "ส่วนหลังมีค่าเป็น 1 ส่วนหน้าเหลือเลขชี้กำลังลบ จึงเขียนเป็นเศษส่วน",
+          answer: `1/${prime.base}^${prime.exp}`,
+          accepted: [`1/${prime.base}^${prime.exp}`, `1/${prime.base ** prime.exp}`],
+          hint: base === 4
+            ? "ส่วนหลังมีค่าเป็น 1 ส่วนหน้าเหลือเลขชี้กำลังลบ จึงเขียนเป็นเศษส่วน (และอย่าลืมแปลงฐาน 4 ให้เป็นฐาน 2 ด้วยนะ!)"
+            : "ส่วนหลังมีค่าเป็น 1 ส่วนหน้าเหลือเลขชี้กำลังลบ จึงเขียนเป็นเศษส่วน",
           points: 35
         };
       }

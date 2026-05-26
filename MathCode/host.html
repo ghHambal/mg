@@ -510,6 +510,14 @@
     } else {
       publish(room);
     }
+
+    // Smooth second-by-second client-side clock ticking
+    setInterval(() => {
+      if (room.status === "running" && room.remaining > 0) {
+        room.remaining = Math.max(0, room.remaining - 1);
+        $("clock").textContent = PowerArena.formatClock(room.remaining);
+      }
+    }, 1000);
   </script>
 </body>
 </html>

@@ -184,6 +184,19 @@ function localAddresses() {
   return urls;
 }
 
+// Active room ticking on the server to keep countdowns running autonomously
+setInterval(() => {
+  for (const [code, room] of rooms.entries()) {
+    if (room.status === "running") {
+      const next = PowerArena.applyTick(room);
+      if (next.remaining !== room.remaining || next.status !== room.status) {
+        rooms.set(code, next);
+        broadcast(code, next);
+      }
+    }
+  }
+}, 1000);
+
 server.listen(PORT, "0.0.0.0", () => {
   console.log("Power Arena classroom server is ready.");
   for (const url of localAddresses()) console.log(`- ${url}`);

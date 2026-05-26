@@ -119,6 +119,34 @@
     .submit { min-height: 64px; font-size: 20px; }
     .format { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; color: var(--muted); font-size: 13px; }
     .format span { padding: 6px 9px; border-radius: 999px; background: rgba(255,255,255,.06); }
+    .clock-prominent {
+      font-family: var(--font-mono);
+      font-size: clamp(26px, 7vw, 38px);
+      font-weight: 950;
+      color: var(--accent);
+      background: color-mix(in oklch, var(--surface), white 10%);
+      border: 2px solid color-mix(in oklch, var(--accent), transparent 40%);
+      padding: 8px 18px;
+      border-radius: 18px;
+      letter-spacing: 0.05em;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      transition: all 0.25s var(--ease);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .clock-prominent.low-time {
+      background: var(--bad);
+      color: white;
+      border-color: color-mix(in oklch, var(--bad), white 35%);
+      box-shadow: 0 0 25px color-mix(in oklch, var(--bad), transparent 40%);
+      animation: clockPulse 0.8s infinite alternate;
+    }
+    @keyframes clockPulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.08); }
+    }
     @media (max-width: 420px) {
       .phone { padding: 12px; }
       .join-row { grid-template-columns: 1fr; }
@@ -130,10 +158,13 @@
     <header class="top">
       <div>
         <h1 id="teamName">ทีมแดง</h1>
-        <div class="meta"><span id="roomLabel">POWER-4821</span> · <span id="clock">03:00</span> · <span id="status">LOBBY</span></div>
+        <div class="meta"><span id="roomLabel">POWER-4821</span> · <span id="status">LOBBY</span></div>
         <div class="match" id="matchInfo">รอจับคู่</div>
       </div>
-      <div class="score" id="score">0</div>
+      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+        <div class="score" id="score">0</div>
+        <div id="clock" class="clock-prominent">03:00</div>
+      </div>
     </header>
 
     <section class="card join">
@@ -226,7 +257,13 @@
       $("registerState").textContent = me.registered ? "บันทึกแล้ว" : "ยังไม่บันทึก";
       $("registerBox").classList.toggle("done", Boolean(me.registered));
       $("score").textContent = me.score;
-      $("clock").textContent = PowerArena.formatClock(room.remaining);
+      const clockEl = $("clock");
+      clockEl.textContent = PowerArena.formatClock(room.remaining);
+      if (room.status === "running" && room.remaining <= 30) {
+        clockEl.classList.add("low-time");
+      } else {
+        clockEl.classList.remove("low-time");
+      }
       $("status").textContent = room.status.toUpperCase();
       $("matchInfo").textContent = room.tournament.champion
         ? `แชมป์: ${room.tournament.champion.name}`
@@ -288,6 +325,20 @@
 
     joinTeam();
     paint();
+
+    // Smooth second-by-second client-side clock ticking
+    setInterval(() => {
+      if (room.status === "running" && room.remaining > 0) {
+        room.remaining = Math.max(0, room.remaining - 1);
+        const clockEl = $("clock");
+        clockEl.textContent = PowerArena.formatClock(room.remaining);
+        if (room.remaining <= 30) {
+          clockEl.classList.add("low-time");
+        } else {
+          clockEl.classList.remove("low-time");
+        }
+      }
+    }, 1000);
   </script>
 </body>
 </html>

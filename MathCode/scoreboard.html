@@ -35,14 +35,27 @@
     .room { justify-self: end; font: 900 26px/1 var(--font-mono); color: var(--accent); letter-spacing: .08em; }
     .clock {
       justify-self: center;
-      min-width: 220px;
-      padding: 16px 22px;
-      border-radius: 28px;
+      min-width: 280px;
+      padding: 18px 28px;
+      border-radius: 34px;
       text-align: center;
       background: var(--accent);
       color: oklch(12% 0.04 265);
-      font: 950 clamp(42px, 5vw, 76px)/1 var(--font-mono);
-      box-shadow: 0 24px 70px color-mix(in oklch, var(--accent), transparent 74%);
+      font: 950 clamp(58px, 7vw, 105px)/1 var(--font-mono);
+      box-shadow: 0 20px 60px color-mix(in oklch, var(--accent), transparent 60%);
+      border: 3px solid color-mix(in oklch, var(--accent), white 20%);
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    .clock.low-time {
+      background: var(--red);
+      color: white;
+      border-color: color-mix(in oklch, var(--red), white 30%);
+      box-shadow: 0 0 35px color-mix(in oklch, var(--red), transparent 25%);
+      animation: clockPulseScoreboard 0.8s infinite alternate;
+    }
+    @keyframes clockPulseScoreboard {
+      from { transform: scale(1); }
+      to { transform: scale(1.08); }
     }
     .arena { display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: 18px; min-height: 0; }
     .team {
@@ -141,7 +154,13 @@
 
     function paint() {
       room = PowerArena.applyTick(room);
-      $("clock").textContent = PowerArena.formatClock(room.remaining);
+      const clockEl = $("clock");
+      clockEl.textContent = PowerArena.formatClock(room.remaining);
+      if (room.status === "running" && room.remaining <= 30) {
+        clockEl.classList.add("low-time");
+      } else {
+        clockEl.classList.remove("low-time");
+      }
       $("room").textContent = room.code;
       $("roomSmall").textContent = room.code;
       $("nameA").textContent = room.teams.A.name;
@@ -176,6 +195,20 @@
       }
     }, 500);
     paint();
+
+    // Smooth second-by-second client-side clock ticking
+    setInterval(() => {
+      if (room.status === "running" && room.remaining > 0) {
+        room.remaining = Math.max(0, room.remaining - 1);
+        const clockEl = $("clock");
+        clockEl.textContent = PowerArena.formatClock(room.remaining);
+        if (room.remaining <= 30) {
+          clockEl.classList.add("low-time");
+        } else {
+          clockEl.classList.remove("low-time");
+        }
+      }
+    }, 1000);
   </script>
 </body>
 </html>
