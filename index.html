@@ -129,31 +129,7 @@
     </section>
 
     <section class="cards" aria-label="เลือกหน้าจอใช้งาน">
-      <a class="card" href="host.html?room=POWER-4821">
-        <span class="badge">TEACHER</span>
-        <strong>Teacher Host</strong>
-        <p>ครูสร้างห้อง ใส่รายชื่อทีม จับคู่ทัวร์นาเมนต์ เลือกเวลา และบันทึกผู้ชนะ</p>
-      </a>
-      <a class="card" href="scoreboard.html?room=POWER-4821">
-        <span class="badge">PROJECTOR</span>
-        <strong>Scoreboard</strong>
-        <p>จอใหญ่ขึ้นโปรเจกเตอร์ แสดงคู่ปัจจุบัน คะแนน เวลา โจทย์ และเฉลย</p>
-      </a>
-      <a class="card red" href="team.html?room=POWER-4821&team=A">
-        <span class="badge">TEAM A</span>
-        <strong>ทีมแดง</strong>
-        <p>หน้าสำหรับ iPad/มือถือทีมแดง ใช้พิมพ์คำตอบสุดท้าย</p>
-      </a>
-      <a class="card blue" href="team.html?room=POWER-4821&team=B">
-        <span class="badge">TEAM B</span>
-        <strong>ทีมน้ำเงิน</strong>
-        <p>หน้าสำหรับ iPad/มือถือทีมน้ำเงิน ใช้ส่งคำตอบแข่งกับทีมแดง</p>
-      </a>
-      <a class="card" href="power-arena-exponent-battle.html">
-        <span class="badge">BACKUP</span>
-        <strong>เครื่องเดียว</strong>
-        <p>แผนสำรองเมื่อ Wi‑Fi ไม่พร้อม ให้ตัวแทนทีมมาพิมพ์ที่เครื่องครู</p>
-      </a>
+      <!-- Generated dynamically by script below -->
     </section>
 
     <section class="steps" aria-label="วิธีใช้งาน">
@@ -174,5 +150,116 @@
       </div>
     </section>
   </main>
+
+  <script src="shared-game.js"></script>
+  <script>
+    const roomCode = PowerArena.normalizeRoomCode(PowerArena.getQuery("room", PowerArena.DEFAULT_ROOM));
+    let room = PowerArena.loadRoom(roomCode);
+
+    function paintCards(currentRoom) {
+      const container = document.querySelector(".cards");
+      const base = location.protocol === "file:" ? "" : `${location.origin}${location.pathname.replace(/index\.html$/, "")}`;
+      const code = encodeURIComponent(currentRoom.code);
+
+      // 1. Keep Teacher Host & Scoreboard buttons
+      let html = `
+        <a class="card" href="${base}host.html?room=${code}">
+          <span class="badge">TEACHER</span>
+          <strong>Teacher Host</strong>
+          <p>ครูสร้างห้อง ใส่รายชื่อทีม จับคู่ทัวร์นาเมนต์ เลือกเวลา และบันทึกผู้ชนะ</p>
+        </a>
+        <a class="card" href="${base}scoreboard.html?room=${code}">
+          <span class="badge">PROJECTOR</span>
+          <strong>Scoreboard</strong>
+          <p>จอใหญ่ขึ้นโปรเจกเตอร์ แสดงคู่ปัจจุบัน คะแนน เวลา โจทย์ และเฉลย</p>
+        </a>
+      `;
+
+      const tournament = currentRoom.tournament;
+      if (tournament && tournament.active && Object.keys(tournament.leaderboard).length > 0) {
+        // 2. Render all teams dynamically from the active tournament roster!
+        const rows = PowerArena.leaderboardRows(currentRoom);
+        const pair = tournament.currentPair;
+        
+        rows.forEach((team) => {
+          let sideLabel = "⏳ รอแข่ง / สังเกตการณ์";
+          let link = "#";
+          let badgeClass = "";
+          let extraDesc = `ชนะ ${team.wins} แมตช์ · คะแนนสะสม ${team.totalScore} แต้ม`;
+
+          if (pair && !pair.completed) {
+            if (pair.A.name === team.name) {
+              sideLabel = "🔴 กำลังแข่ง (TEAM A)";
+              link = `${base}team.html?room=${code}&team=A`;
+              badgeClass = "red";
+              extraDesc = "คลิกเพื่อเปิดหน้าส่งคำตอบของทีมแดงสำหรับคู่นี้!";
+            } else if (pair.B.name === team.name) {
+              sideLabel = "🔵 กำลังแข่ง (TEAM B)";
+              link = `${base}team.html?room=${code}&team=B`;
+              badgeClass = "blue";
+              extraDesc = "คลิกเพื่อเปิดหน้าส่งคำตอบของทีมน้ำเงินสำหรับคู่นี้!";
+            }
+          }
+
+          const onclickAttr = link === "#" ? "onclick='return false;'" : "";
+          const hoverStyle = link === "#" ? "style='cursor: default; opacity: 0.65;'" : "";
+
+          html += `
+            <a class="card ${badgeClass}" href="${link}" ${onclickAttr} ${hoverStyle}>
+              <span class="badge">${sideLabel}</span>
+              <strong>${team.name}</strong>
+              <p>${extraDesc}</p>
+            </a>
+          `;
+        });
+      } else {
+        // 3. Fallback to default Team A and Team B if no tournament active
+        html += `
+          <a class="card red" href="${base}team.html?room=${code}&team=A">
+            <span class="badge">TEAM A</span>
+            <strong>${currentRoom.teams.A.name}</strong>
+            <p>หน้าสำหรับ iPad/มือถือทีมแดง ใช้พิมพ์คำตอบสุดท้าย</p>
+          </a>
+          <a class="card blue" href="${base}team.html?room=${code}&team=B">
+            <span class="badge">TEAM B</span>
+            <strong>${currentRoom.teams.B.name}</strong>
+            <p>หน้าสำหรับ iPad/มือถือทีมน้ำเงิน ใช้ส่งคำตอบแข่งกับทีมแดง</p>
+          </a>
+        `;
+      }
+
+      // 4. Add backup machine play card
+      html += `
+        <a class="card" href="${base}power-arena-exponent-battle.html">
+          <span class="badge">BACKUP</span>
+          <strong>เครื่องเดียว</strong>
+          <p>แผนสำรองเมื่อ Wi‑Fi ไม่พร้อม ให้ตัวแทนทีมมาพิมพ์ที่เครื่องครู</p>
+        </a>
+      `;
+
+      container.innerHTML = html;
+      
+      // Update room code label on the hero area
+      const roomLabel = document.querySelector(".room strong");
+      if (roomLabel) roomLabel.textContent = currentRoom.code;
+    }
+
+    // Initial render
+    paintCards(room);
+
+    // Fetch and sync if running server mode
+    if (PowerArena.hasServerSync()) {
+      PowerArena.fetchRoom(roomCode)
+        .then((next) => {
+          paintCards(next);
+        })
+        .catch(() => {});
+
+      // Setup Server-Sent Events sync
+      const sync = PowerArena.createSync(roomCode, (next) => {
+        paintCards(next);
+      });
+    }
+  </script>
 </body>
 </html>
